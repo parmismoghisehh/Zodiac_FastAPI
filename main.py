@@ -1,39 +1,31 @@
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+zodiac_animals = [
+    "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake",
+    "Horse", "Goat", "Monkey", "Rooster", "Dog", "Pig"
+]
 
-def calculate_zodiac(year: int) -> str:
-    animals = [
-        "Rat",
-        "Ox",
-        "Tiger",
-        "Rabbit",
-        "Dragon",
-        "Snake",
-        "Horse",
-        "Goat",
-        "Monkey",
-        "Rooster",
-        "Dog",
-        "Pig",
-    ]
-    return animals[(year - 1900) % 12]
+
+def calculate_zodiac(year: int):
+    index = (year - 4) % 12
+    return zodiac_animals[index]
 
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
-        request,
-        "index.html",
-        {
+        name="index.html",
+        request=request,
+        context={
             "animal": None,
             "year": None,
-            "error": None,
-        },
+            "error": None
+        }
     )
 
 
@@ -41,23 +33,23 @@ def home(request: Request):
 def get_zodiac(request: Request, year: int = Form(...)):
     if year < 1900 or year > 2100:
         return templates.TemplateResponse(
-            request,
-            "index.html",
-            {
+            name="index.html",
+            request=request,
+            context={
                 "animal": None,
                 "year": year,
-                "error": "Please enter a year between 1900 and 2100.",
-            },
+                "error": "Please enter a year between 1900 and 2100."
+            }
         )
 
     animal = calculate_zodiac(year)
 
     return templates.TemplateResponse(
-        request,
-        "index.html",
-        {
+        name="index.html",
+        request=request,
+        context={
             "animal": animal,
             "year": year,
-            "error": None,
-        },
+            "error": None
+        }
     )
