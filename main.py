@@ -1,10 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
-app = FastAPI(
-    title="Chinese Zodiac API",
-    description="Returns the Chinese zodiac animal for a given birth year.",
-    version="1.0.0"
-)
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
 
 zodiac_animals = [
     "Rat",
@@ -22,26 +22,48 @@ zodiac_animals = [
 ]
 
 
-@app.get("/")
-def home():
-    return {
-        "message": "Welcome to the Chinese Zodiac API",
-        "usage": "/zodiac/{year}"
-    }
+def calculate_zodiac(year: int):
+    index = (year - 4) % 12
+    return zodiac_animals[index]
 
 
-@app.get("/zodiac/{year}")
-def get_zodiac(year: int):
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "animal": None,
+            "year": None,
+            "error": None
+        }
+    )
+
+
+@app.post("/", response_class=HTMLResponse)
+def get_zodiac(
+    request: Request,
+    year: int = Form(...)
+):
     if year < 1900 or year > 2100:
-        raise HTTPException(
-            status_code=400,
-            detail="Year must be between 1900 and 2100."
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "animal": None,
+                "year": year,
+                "error": "Please enter a year between 1900 and 2100."
+            }
         )
 
-    index = (year - 4) % 12
-    animal = zodiac_animals[index]
+    animal = calculate_zodiac(year)
 
-    return {
-        "year": year,
-        "animal": animal
-    }
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "animal": animal,
+            "year": year,
+            "error": None
+        }
+    )
