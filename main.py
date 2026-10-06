@@ -30,9 +30,9 @@ def calculate_zodiac(year: int):
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "animal": None,
             "year": None,
             "error": None
@@ -47,9 +47,9 @@ def get_zodiac(
 ):
     if year < 1900 or year > 2100:
         return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
+            request=request,
+            name="index.html",
+            context={
                 "animal": None,
                 "year": year,
                 "error": "Please enter a year between 1900 and 2100."
@@ -59,9 +59,9 @@ def get_zodiac(
     animal = calculate_zodiac(year)
 
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "animal": animal,
             "year": year,
             "error": None
